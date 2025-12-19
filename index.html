@@ -2,12 +2,121 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="stylesheet" href="/src/style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>marcusoveracker-com</title>
+    <title>Marcus Overacker</title>
   </head>
-  <body>
-    <div id="app"></div>
+
+  <body class="min-h-screen bg-white text-black">
+    <main class="min-h-screen flex flex-col items-center justify-start text-center px-6 pt-24">
+
+      <header class="flex flex-col items-center gap-4 w-full">
+        <h1 class="text-4xl md:text-5xl font-light tracking-wide">Marcus Overacker</h1>
+
+        <p class="text-xs tracking-widest uppercase text-neutral-600">
+          Composer · Guitarist · Teacher · Artist
+        </p>
+
+        <!-- Home-only navigation: beveled boxes -->
+        <nav class="mt-10 flex flex-col gap-4 w-full max-w-md">
+          <a
+            href="/works.html"
+            data-nav="works"
+            class="home-btn w-full py-5 bg-white text-black border border-neutral-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08)] transition select-none"
+          >
+            Works
+          </a>
+
+          <a
+            href="/currents.html"
+            data-nav="currents"
+            class="home-btn w-full py-5 bg-white text-black border border-neutral-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08)] transition select-none"
+          >
+            The Currents
+          </a>
+
+          <a
+            href="/about.html"
+            data-nav="about"
+            class="home-btn w-full py-5 bg-white text-black border border-neutral-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08)] transition select-none"
+          >
+            About
+          </a>
+
+          <a
+            href="/contact.html"
+            data-nav="contact"
+            class="home-btn w-full py-5 bg-white text-black border border-neutral-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08)] transition select-none"
+          >
+            Contact
+          </a>
+        </nav>
+
+        <!-- Watermark / glyph placeholder -->
+        <div class="mt-12 opacity-10 select-none pointer-events-none">
+          <div class="text-6xl font-light tracking-widest">∴</div>
+        </div>
+      </header>
+    </main>
+
     <script type="module" src="/src/main.js"></script>
+
+    <script>
+      // Home page: interaction-only alchemical colors (held on hover/focus).
+      const COLORS = {
+        works:    { bg: "bg-black",      text: "text-white" },
+        currents: { bg: "bg-neutral-50", text: "text-black" },
+        about:    { bg: "bg-yellow-700", text: "text-black" },
+        contact:  { bg: "bg-red-800",    text: "text-white" },
+      };
+
+      const BASE_REMOVE = [
+        "bg-black","bg-neutral-50","bg-yellow-700","bg-red-800",
+        "text-white","text-black",
+        "ring-1","ring-black"
+      ];
+
+      function clearState(el) {
+        el.classList.remove(...BASE_REMOVE);
+        el.classList.add("bg-white","text-black");
+      }
+
+      function applyState(el, key) {
+        const c = COLORS[key];
+        if (!c) return;
+
+        // Reset to baseline first
+        el.classList.remove("bg-white","text-black");
+        el.classList.remove(...BASE_REMOVE);
+
+        // Apply color
+        el.classList.add(c.bg, c.text);
+
+        // Extra underscore: black outline only for Currents (on hover/focus)
+        if (key === "currents") {
+          el.classList.add("ring-1", "ring-black");
+        }
+      }
+
+      document.querySelectorAll(".home-btn[data-nav]").forEach((a) => {
+        const key = a.getAttribute("data-nav");
+
+        // HOLD while hovered/focused
+        a.addEventListener("mouseenter", () => applyState(a, key));
+        a.addEventListener("focus", () => applyState(a, key));
+
+        // CLEAR when leaving/unfocusing
+        a.addEventListener("mouseleave", () => clearState(a));
+        a.addEventListener("blur", () => clearState(a));
+
+        // Click: keep the color momentarily, then navigate
+        a.addEventListener("click", (e) => {
+          applyState(a, key);
+          e.preventDefault();
+          const href = a.getAttribute("href");
+          window.setTimeout(() => { window.location.href = href; }, 80);
+        });
+      });
+    </script>
   </body>
 </html>

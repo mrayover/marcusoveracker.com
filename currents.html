@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Currents — Marcus Overacker</title>
+  </head>
+
+<body class="min-h-screen bg-white text-black" data-page="currents">
+    <main class="min-h-screen flex flex-col items-center justify-start text-center px-6 pt-24">
+      <header class="flex flex-col items-center gap-4 w-full">
+        <h1 class="text-4xl md:text-5xl font-light tracking-wide">Marcus Overacker</h1>
+
+        <p class="text-xs tracking-widest uppercase text-neutral-600">
+          Composer · Guitarist · Teacher · Artist
+        </p>
+
+        <a
+          href="/index.html"
+          data-nav="home"
+          class="nav-link inline-block px-2 py-1 rounded-sm mt-2 text-xs tracking-widest uppercase text-neutral-500 hover:text-black transition"
+        >
+          Home
+        </a>
+
+        <nav class="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
+          <a
+            href="/works.html"
+            data-nav="works"
+            class="nav-link inline-block px-2 py-1 rounded-sm text-xs tracking-widest uppercase text-neutral-600 hover:text-black transition"
+          >
+            Works
+          </a>
+          <a
+            href="/currents.html"
+            data-nav="currents"
+            class="nav-link inline-block px-2 py-1 rounded-sm text-xs tracking-widest uppercase text-neutral-600 hover:text-black transition"
+          >
+            The Currents
+          </a>
+          <a
+            href="/about.html"
+            data-nav="about"
+            class="nav-link inline-block px-2 py-1 rounded-sm text-xs tracking-widest uppercase text-neutral-600 hover:text-black transition"
+          >
+            About
+          </a>
+          <a
+            href="/contact.html"
+            data-nav="contact"
+            class="nav-link inline-block px-2 py-1 rounded-sm text-xs tracking-widest uppercase text-neutral-600 hover:text-black transition"
+          >
+            Contact
+          </a>
+        </nav>
+      </header>
+
+      <section class="mt-14 space-y-6 w-full max-w-xl text-left">
+        <h2 class="text-xl tracking-wide text-center">The Currents</h2>
+
+        <!-- Static shell for now -->
+        <article class="border border-neutral-200 p-4 space-y-2">
+          <div class="text-xs tracking-widest uppercase text-neutral-500">2025-12</div>
+          <div class="text-sm text-neutral-800 leading-relaxed">
+            (Placeholder) Current reading / listening / brief work note.
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+
+    <script>
+      const COLORS = {
+        works:    { bg: "bg-black",       text: "text-white" },
+        currents: { bg: "bg-neutral-50",  text: "text-black" },
+        about:    { bg: "bg-yellow-700",  text: "text-black" },
+        contact:  { bg: "bg-red-800",     text: "text-white" },
+        home:     { bg: "bg-neutral-600", text: "text-white" },
+      };
+// Persist the current page's nav color (bezel/background stays).
+(() => {
+  const page = document.body.getAttribute("data-page");
+  if (!page) return;
+
+  const a = document.querySelector(`.nav-link[data-nav="${page}"]`);
+  if (!a) return;
+
+  const c = COLORS[page];
+  if (!c) return;
+
+  // Apply persistent pill styling + color
+  a.classList.add(c.bg, c.text, "ring-1", "ring-black");
+
+})();
+
+
+ document.querySelectorAll(".nav-link[data-nav]").forEach((a) => {
+  const key = a.getAttribute("data-nav");
+
+  // HOLD color while hovered/focused
+  a.addEventListener("mouseenter", () => applyFlash(a, key));
+  a.addEventListener("focus", () => applyFlash(a, key));
+
+  // CLEAR when leaving/unfocusing
+  a.addEventListener("mouseleave", () => clearFlash(a));
+  a.addEventListener("blur", () => clearFlash(a));
+
+  // Click: brief flash, then navigate
+  a.addEventListener("click", (e) => {
+    applyFlash(a, key);
+    e.preventDefault();
+    const href = a.getAttribute("href");
+    window.setTimeout(() => {
+      window.location.href = href;
+    }, 80);
+  });
+});
+
+
+      document.querySelectorAll(".nav-link[data-nav]").forEach((a) => {
+        const key = a.getAttribute("data-nav");
+        a.addEventListener("mouseenter", () => applyFlash(a, key));
+        a.addEventListener("focus", () => applyFlash(a, key));
+        a.addEventListener("click", (e) => {
+          applyFlash(a, key);
+          e.preventDefault();
+          const href = a.getAttribute("href");
+          window.setTimeout(() => { window.location.href = href; }, 80);
+        });
+      });
+    </script>
+  </body>
+</html>
