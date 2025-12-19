@@ -2,3 +2,89 @@
 
 /* Prevent subtle center-shift when some pages have a scrollbar and others don't */
 html { overflow-y: scroll; }
+/* --- The Currents: porthole frame layout --- */
+
+/* --- The Currents: explicit bezel / porthole --- */
+
+.currents-frame {
+  width: min(56vw, 52rem);     /* slightly wider than before */
+  max-width: 52rem;
+
+  background: #000;            /* the bezel itself */
+  padding: 0.45in;             /* THICK border: ~0.45" */
+
+  height: 85vh;
+  margin: 3rem auto 0.5in;
+
+  box-sizing: border-box;
+}
+
+/* inner white window */
+.currents-frame-inner {
+  background: #fff;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  /* subtle inset shadow so the window reads as cut-in */
+  box-shadow: inset 0 0 0 1px #000;
+}
+
+/* mobile adjustment */
+@media (max-width: 768px) {
+  .currents-frame {
+    width: 100%;
+    padding: 0.28in;
+  }
+}
+
+
+
+.currents-frame-title{
+  padding: 1.2rem 1rem;
+  border-bottom: 1px solid #000;
+
+  text-align: center;
+  text-transform: uppercase;
+
+  font-size: 1.45rem;     /* bigger */
+  font-weight: 700;       /* bold */
+  letter-spacing: 0.6em;  /* spread */
+}
+
+/* --- Currents bezel states (mat-style) --- */
+
+.currents-frame {
+  /* your existing sizing/height/margins can stay as-is */
+  background: var(--bezel, #000); /* <-- THIS is the bezel color now */
+  padding: 0.45in;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* inner window stays white */
+.currents-frame-inner {
+  background: #fff;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: inset 0 0 0 1px #000;
+}
+
+/* Set bezel color via CSS variables */
+.currents-bezel-black  { --bezel: #000; }
+.currents-bezel-gray   { --bezel: #404040; }  /* neutral-700-ish */
+.currents-bezel-yellow { --bezel: #8a6a00; }  /* dark earthy yellow */
+.currents-bezel-red    { --bezel: #6b1f1f; }  /* dark earthy red */
+.currents-bezel-white  { --bezel: #f9fafb; }  /* off-white */
+
+/* White bezel gets an extra INNER keyline */
+.currents-bezel-white .currents-frame-inner::before {
+  content: "";
+  position: absolute;
+  /* keyline sits just inside the bezel, outside the inner panel */
+  inset: 0.28in;
+  border: 1px solid #000;
+  pointer-events: none;
+}
+

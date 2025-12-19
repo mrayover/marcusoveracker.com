@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The Currents — Marcus Overacker</title>
   </head>
+  
+
+
 
 <body class="min-h-screen bg-white text-black" data-page="currents">
     <main class="min-h-screen flex flex-col items-center justify-start text-center px-6 pt-24">
@@ -56,80 +59,120 @@
         </nav>
       </header>
 
-      <section class="mt-14 space-y-6 w-full max-w-xl text-left">
-        <h2 class="text-xl tracking-wide text-center">The Currents</h2>
+<section class="mt-10 w-full">
+  <div class="currents-frame">
+    <div class="currents-frame-inner">
+      <div class="currents-frame-title">THE CURRENTS</div>
 
-        <!-- Static shell for now -->
-        <article class="border border-neutral-200 p-4 space-y-2">
+      <div class="currents-frame-body">
+        <article class="space-y-2">
           <div class="text-xs tracking-widest uppercase text-neutral-500">2025-12</div>
           <div class="text-sm text-neutral-800 leading-relaxed">
             (Placeholder) Current reading / listening / brief work note.
           </div>
         </article>
-      </section>
+      </div>
+    </div>
+  </div>
+</section>
+
+
     </main>
 
-    <script type="module" src="/src/main.js"></script>
-
     <script>
-      const COLORS = {
-        works:    { bg: "bg-black",       text: "text-white" },
-        currents: { bg: "bg-neutral-50",  text: "text-black" },
-        about:    { bg: "bg-yellow-700",  text: "text-black" },
-        contact:  { bg: "bg-red-800",     text: "text-white" },
-        home:     { bg: "bg-neutral-600", text: "text-white" },
-      };
-// Persist the current page's nav color (bezel/background stays).
-(() => {
-  const page = document.body.getAttribute("data-page");
-  if (!page) return;
+  const COLORS = {
+    works:    { bg: "bg-black",       text: "text-white" },
+    currents: { bg: "bg-neutral-50",  text: "text-black" },
+    about:    { bg: "bg-yellow-700",  text: "text-black" },
+    contact:  { bg: "bg-red-800",     text: "text-white" },
+    home:     { bg: "bg-neutral-600", text: "text-white" },
+  };
 
-  const a = document.querySelector(`.nav-link[data-nav="${page}"]`);
-  if (!a) return;
+  const REMOVE = [
+    "bg-black","bg-neutral-50","bg-yellow-700","bg-red-800","bg-neutral-600",
+    "text-white","text-black",
+    "ring-1","ring-black"
+  ];
 
-  const c = COLORS[page];
-  if (!c) return;
+  function clearFlash(el) {
+    el.classList.remove(...REMOVE);
+  }
 
-  // Apply persistent pill styling + color
-  a.classList.add(c.bg, c.text, "ring-1", "ring-black");
+  function applyFlash(el, key) {
+    const c = COLORS[key];
+    if (!c) return;
+    clearFlash(el);
+    el.classList.add(c.bg, c.text);
 
-})();
+    // Selected Currents: solid black outline
+    if (key === "currents") {
+      el.classList.add("ring-1","ring-black");
+    }
+  }
 
+  // Persist active page color
+  (() => {
+    const page = document.body.getAttribute("data-page");
+    const a = document.querySelector(`.nav-link[data-nav="${page}"]`);
+    if (!a) return;
+    applyFlash(a, page);
+  })();
 
- document.querySelectorAll(".nav-link[data-nav]").forEach((a) => {
-  const key = a.getAttribute("data-nav");
+  document.querySelectorAll(".nav-link[data-nav]").forEach((a) => {
+    const key = a.getAttribute("data-nav");
 
-  // HOLD color while hovered/focused
-  a.addEventListener("mouseenter", () => applyFlash(a, key));
-  a.addEventListener("focus", () => applyFlash(a, key));
+    a.addEventListener("mouseenter", () => applyFlash(a, key));
+    a.addEventListener("focus", () => applyFlash(a, key));
 
-  // CLEAR when leaving/unfocusing
-  a.addEventListener("mouseleave", () => clearFlash(a));
-  a.addEventListener("blur", () => clearFlash(a));
+    a.addEventListener("mouseleave", () => {
+      clearFlash(a);
+      const page = document.body.getAttribute("data-page");
+      if (key === page) applyFlash(a, key);
+    });
 
-  // Click: brief flash, then navigate
-  a.addEventListener("click", (e) => {
-    applyFlash(a, key);
-    e.preventDefault();
-    const href = a.getAttribute("href");
-    window.setTimeout(() => {
-      window.location.href = href;
-    }, 80);
+    a.addEventListener("blur", () => {
+      clearFlash(a);
+      const page = document.body.getAttribute("data-page");
+      if (key === page) applyFlash(a, key);
+    });
+
+    a.addEventListener("click", (e) => {
+      applyFlash(a, key);
+      e.preventDefault();
+      const href = a.getAttribute("href");
+      window.setTimeout(() => { window.location.href = href; }, 80);
+    });
   });
-});
+</script>
 
+<script>
+  (function () {
+    const frame = document.querySelector(".currents-frame");
+    if (!frame) return;
 
-      document.querySelectorAll(".nav-link[data-nav]").forEach((a) => {
-        const key = a.getAttribute("data-nav");
-        a.addEventListener("mouseenter", () => applyFlash(a, key));
-        a.addEventListener("focus", () => applyFlash(a, key));
-        a.addEventListener("click", (e) => {
-          applyFlash(a, key);
-          e.preventDefault();
-          const href = a.getAttribute("href");
-          window.setTimeout(() => { window.location.href = href; }, 80);
-        });
-      });
-    </script>
+    const bezelClasses = [
+      "currents-bezel-black",
+      "currents-bezel-gray",
+      "currents-bezel-red",
+      "currents-bezel-yellow",
+      "currents-bezel-white",
+    ];
+
+    // Remove any previous bezel state (in case of hot reload)
+    frame.classList.remove(...bezelClasses);
+
+    // Weighted choice: mostly black/gray, rare colors, very rare white
+    const weighted = [
+      ...Array(8).fill("currents-bezel-black"),
+      ...Array(3).fill("currents-bezel-gray"),
+      "currents-bezel-red",
+      "currents-bezel-yellow",
+      "currents-bezel-white",
+    ];
+
+    const choice = weighted[Math.floor(Math.random() * weighted.length)];
+    frame.classList.add(choice);
+  })();
+</script>
   </body>
 </html>
