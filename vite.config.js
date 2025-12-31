@@ -1076,6 +1076,19 @@ export default defineConfig({
     currentsDevGui(),
     worksDevGui(),
   ],
+build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(process.cwd(), "index.html"),
+        works: path.resolve(process.cwd(), "works.html"),
+        currents: path.resolve(process.cwd(), "currents.html"),
+        about: path.resolve(process.cwd(), "about.html"),
+        contact: path.resolve(process.cwd(), "contact.html"),
+        // if you have it in the root too:
+        "works-admin": path.resolve(process.cwd(), "works-admin.html"),
+      },
+    },
+  },
 });
 
 
