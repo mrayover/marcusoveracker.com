@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/build-currents.js && vite build",
+    "build": "node scripts/build-currents.js && node scripts/build-works.js && vite build",
     "preview": "vite preview"
   },
 

@@ -329,7 +329,22 @@ function currentsDevGui() {
     for (const it of items) {
       const li = document.createElement("li");
       li.dataset.file = it.file;
-      li.innerHTML = \`<div><strong>\${it.title || it.file}</strong></div><div class="meta">\${it.date || ""} · <span class="status">\${it.status || "active"}</span></div>\`;
+  
+li.innerHTML = \`
+  <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">
+    <div>
+      <div><strong>\${it.title || it.file}</strong></div>
+      <div class="meta">\${it.date || ""} · <span class="status">\${it.status || "active"}</span></div>
+    </div>
+    <button
+      type="button"
+      data-del="\${it.file}"
+      style="padding:6px 8px;border-radius:10px;border:1px solid rgba(127,127,127,.35);background:transparent;color:inherit;cursor:pointer;"
+      title="Delete this entry"
+    >Delete</button>
+  </div>
+\`;
+
       li.addEventListener("click", async () => {
         [...els.list.children].forEach(x => x.classList.remove("active"));
         li.classList.add("active");
@@ -353,10 +368,33 @@ function currentsDevGui() {
         els.body.value = payload.body || "";
         setMsg("Loaded: " + it.file);
       });
+            // delete button (stop row-click)
+      const delBtn = li.querySelector('button[data-del]');
+      delBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+
+        if (!confirm(\`DELETE this entry?\n\n\${it.file}\n\nThis cannot be undone.\`)) return;
+
+        const r = await fetch(API + "/delete", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ file: it.file }),
+        });
+
+        const out = await r.json().catch(() => ({}));
+        if (!r.ok) return setMsg(out.error || "Delete failed.");
+
+        if (currentFile === it.file) blank();
+
+        setMsg("Deleted: " + it.file);
+        await loadList();
+      });
+
       els.list.appendChild(li);
     }
     setMsg("Loaded entries list.");
   };
+
 
   const gather = () => {
     const tags = els.tags.value
@@ -523,6 +561,7 @@ function currentsDevGui() {
             const existing = await fs.readFile(full, "utf8");
             const { data: oldData } = parseFrontmatter(existing);
 
+
             // keep id stable unless missing
             const data = {
               ...payload.data,
@@ -536,6 +575,487 @@ function currentsDevGui() {
             res.statusCode = 200;
             res.setHeader("content-type", "application/json; charset=utf-8");
             res.end(JSON.stringify({ file }));
+            return;
+          }
+          // API: delete
+          if (req.method === "POST" && req.url === `${API_BASE}/delete`) {
+            const payload = await readJson();
+            const file = safeBasename(payload.file);
+            if (!file) throw new Error("Bad file.");
+            const full = path.join(entriesDir, file);
+
+            // refuse if missing
+            try {
+              await fs.access(full);
+            } catch {
+              throw new Error("File not found.");
+            }
+
+            await fs.unlink(full);
+
+            res.statusCode = 200;
+            res.setHeader("content-type", "application/json; charset=utf-8");
+            res.end(JSON.stringify({ ok: true, file }));
+            return;
+          }
+          next();
+        } catch (err) {
+          res.statusCode = 400;
+          res.setHeader("content-type", "application/json; charset=utf-8");
+          res.end(JSON.stringify({ error: err?.message || "Error" }));
+        }
+      });
+    },
+  };
+}
+function worksDevGui() {
+  const GUI_ROUTE = "/__works";
+  const API_BASE = "/__works/api";
+
+  const root = process.cwd();
+  const entriesDir = path.resolve(root, "src/works/entries");
+  const publicImgDir = path.resolve(root, "public/img/works");
+  const publicMp3Dir = path.resolve(root, "public/mp3/works");
+
+  const safeBasename = (name) => {
+    const base = path.basename(name || "");
+    if (!/^[a-zA-Z0-9._-]+$/.test(base)) return null;
+    return base;
+  };
+
+  const parseFrontmatter = (md) => {
+    const m = md.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
+    if (!m) return { data: {}, body: md };
+    const fmRaw = m[1];
+    const body = md.slice(m[0].length);
+
+    const data = {};
+    for (const line of fmRaw.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const idx = trimmed.indexOf(":");
+      if (idx === -1) continue;
+      const key = trimmed.slice(0, idx).trim();
+      let val = trimmed.slice(idx + 1).trim();
+
+      if (val === "null") { data[key] = null; continue; }
+
+      if (val.startsWith("[") && val.endsWith("]")) {
+        const inner = val.slice(1, -1).trim();
+        data[key] = inner
+          ? inner.split(",").map(s => s.trim().replace(/^"(.*)"$/, "$1"))
+          : [];
+        continue;
+      }
+
+      data[key] = val.replace(/^"(.*)"$/, "$1");
+    }
+
+    return { data, body };
+  };
+
+  const buildMd = (fields, body) => {
+    const q = (s) => `"${String(s ?? "").replaceAll(`"`, `\\"`)}"`;
+    const nul = (v) => (v === null || v === "" ? "null" : q(v));
+
+    const lines = [
+      "---",
+      `id: ${q(fields.id)}`,
+      `title: ${q(fields.title)}`,
+      `status: ${q(fields.status)}`,
+      `year: ${q(fields.year)}`,
+      `instrumentation: ${q(fields.instrumentation)}`,
+      `duration: ${nul(fields.duration)}`,
+      `revised: ${fields.revised ? q(fields.revised) : "null"}`,
+      `image: ${fields.image ? q(fields.image) : q("")}`,
+      `image_alt: ${fields.image_alt ? q(fields.image_alt) : q("")}`,
+      `audio: ${fields.audio ? q(fields.audio) : q("")}`,
+      `audio_caption: ${fields.audio_caption ? q(fields.audio_caption) : q("")}`,
+      "---",
+      (body || "").trim(),
+      "",
+    ];
+    return lines.join("\n");
+  };
+
+  const htmlPage = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Works Editor (Local)</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+    label { display:block; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#444; margin-top:12px; }
+    input, select, textarea { width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; }
+    textarea { min-height:140px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .actions { margin-top:16px; display:flex; gap:12px; align-items:center; }
+    button { padding:10px 14px; border:1px solid #000; background:#000; color:#fff; border-radius:6px; cursor:pointer; }
+    button.secondary { background:#fff; color:#000; }
+    .list { margin-top:28px; border-top:1px solid #eee; padding-top:16px; }
+    .item { padding:10px 0; border-bottom:1px solid #eee; display:flex; justify-content:space-between; gap:12px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; color:#555; }
+    small { color:#666; }
+  </style>
+</head>
+<body>
+  <h1>Works Editor (Local)</h1>
+  <p><small>Writes to <span class="mono">src/works/entries/</span> and uploads assets to <span class="mono">public/img/works/</span> + <span class="mono">public/mp3/works/</span>.</small></p>
+
+  <div class="row">
+    <div>
+      <label>Entry file (md)</label>
+      <input id="file" placeholder="2025__example-work.md" />
+    </div>
+    <div>
+      <label>Status</label>
+      <select id="status">
+        <option value="in-progress">in-progress</option>
+        <option value="in-revision">in-revision</option>
+        <option value="completed">completed</option>
+      </select>
+    </div>
+  </div>
+
+  <label>Title</label>
+  <input id="title" />
+
+  <label>Instrumentation</label>
+  <input id="instrumentation" placeholder="e.g., solo guitar / piano quintet / ..." />
+
+  <div class="row">
+    <div>
+      <label>Year</label>
+      <input id="year" placeholder="YYYY" />
+    </div>
+    <div>
+      <label>Duration</label>
+      <input id="duration" placeholder='~12 min or 12:30' />
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label>Revised (YYYY-MM-DD)</label>
+      <input id="revised" placeholder="optional" />
+    </div>
+    <div>
+      <label>Image alt</label>
+      <input id="image_alt" placeholder="optional" />
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label>Image upload (optional)</label>
+      <input id="image_file" type="file" accept="image/*" />
+      <div class="mono" id="image_name"></div>
+    </div>
+    <div>
+      <label>MP3 upload (optional)</label>
+      <input id="audio_file" type="file" accept="audio/mpeg,audio/mp3" />
+      <div class="mono" id="audio_name"></div>
+    </div>
+  </div>
+
+  <label>Audio caption (optional)</label>
+  <input id="audio_caption" />
+
+  <label>Notes (markdown body)</label>
+  <textarea id="body"></textarea>
+
+  <div class="actions">
+    <button id="save">Save</button>
+    <button class="secondary" id="new">New</button>
+  </div>
+
+  <div class="list">
+    <h2>Existing entries</h2>
+    <div id="items"></div>
+  </div>
+
+<script>
+const api = (p) => "${API_BASE}" + p;
+
+function qs(id){ return document.getElementById(id); }
+
+async function list() {
+  const res = await fetch(api("/list"));
+  const data = await res.json();
+  const items = qs("items");
+  items.innerHTML = "";
+  for (const it of data.items) {
+    const el = document.createElement("div");
+    el.className = "item";
+    el.innerHTML = \`
+      <div>
+        <div><strong>\${it.title || it.file}</strong></div>
+        <div class="mono">\${it.file} · \${it.status || ""} · \${it.year || ""}</div>
+      </div>
+      <div>
+        <button class="secondary" data-open="\${it.file}">Open</button>
+      </div>
+    \`;
+    items.appendChild(el);
+  }
+
+  items.querySelectorAll("[data-open]").forEach(btn => {
+    btn.addEventListener("click", async () => openFile(btn.getAttribute("data-open")));
+  });
+}
+
+function guessIdFromFile(file) {
+  return (file || "").replace(/\\.md$/i, "").trim();
+}
+
+async function openFile(file) {
+  const res = await fetch(api("/read?file=" + encodeURIComponent(file)));
+  const data = await res.json();
+  if (data.error) { alert(data.error); return; }
+
+  const md = data.md || "";
+  const m = md.match(/^---\\s*\\n([\\s\\S]*?)\\n---\\s*\\n?/);
+  let fm = "", body = md;
+  if (m) {
+    fm = m[1];
+    body = md.slice(m[0].length);
+  }
+
+  // super minimal parse for the editor UI
+  const fields = {};
+  for (const line of fm.split("\\n")) {
+    const idx = line.indexOf(":");
+    if (idx === -1) continue;
+    const k = line.slice(0, idx).trim();
+    let v = line.slice(idx + 1).trim();
+    v = v === "null" ? "" : v.replace(/^"(.*)"$/, "$1");
+    fields[k] = v;
+  }
+
+  qs("file").value = file;
+  qs("status").value = fields.status || "in-progress";
+  qs("title").value = fields.title || "";
+  qs("instrumentation").value = fields.instrumentation || "";
+  qs("year").value = fields.year || "";
+  qs("duration").value = fields.duration || "";
+  qs("revised").value = fields.revised || "";
+  qs("image_alt").value = fields.image_alt || "";
+  qs("audio_caption").value = fields.audio_caption || "";
+  qs("body").value = (body || "").trim();
+
+  qs("image_name").textContent = fields.image ? ("image: " + fields.image) : "";
+  qs("audio_name").textContent = fields.audio ? ("audio: " + fields.audio) : "";
+}
+
+async function upload(kind, file) {
+  const name = file.name;
+  const buf = await file.arrayBuffer();
+  const bytes = Array.from(new Uint8Array(buf));
+  const res = await fetch(api("/upload"), {
+    method: "POST",
+    headers: {"content-type":"application/json"},
+    body: JSON.stringify({ kind, name, bytes })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.savedAs;
+}
+
+qs("image_file").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const savedAs = await upload("image", f);
+  qs("image_name").textContent = "image: " + savedAs;
+  qs("image_name").dataset.value = savedAs;
+});
+
+qs("audio_file").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const savedAs = await upload("audio", f);
+  qs("audio_name").textContent = "audio: " + savedAs;
+  qs("audio_name").dataset.value = savedAs;
+});
+
+qs("save").addEventListener("click", async () => {
+  const file = qs("file").value.trim();
+  if (!file) { alert("File is required."); return; }
+  if (!file.toLowerCase().endsWith(".md")) { alert("File must end with .md"); return; }
+
+  const id = guessIdFromFile(file);
+  const payload = {
+    file,
+    md: null,
+  };
+
+  const fields = {
+    id,
+    title: qs("title").value.trim(),
+    status: qs("status").value,
+    year: qs("year").value.trim(),
+    instrumentation: qs("instrumentation").value.trim(),
+    duration: qs("duration").value.trim(),
+    revised: qs("revised").value.trim(),
+    image: qs("image_name").dataset.value || "",
+    image_alt: qs("image_alt").value.trim(),
+    audio: qs("audio_name").dataset.value || "",
+    audio_caption: qs("audio_caption").value.trim(),
+  };
+
+  if (!fields.title) { alert("Title is required."); return; }
+  if (!fields.year) { alert("Year is required."); return; }
+  if (!fields.instrumentation) { alert("Instrumentation is required."); return; }
+
+  const body = qs("body").value;
+
+  const res = await fetch(api("/save"), {
+    method: "POST",
+    headers: {"content-type":"application/json"},
+    body: JSON.stringify({ file, fields, body })
+  });
+  const data = await res.json();
+  if (data.error) { alert(data.error); return; }
+
+  await list();
+  alert("Saved.");
+});
+
+qs("new").addEventListener("click", () => {
+  qs("file").value = "";
+  qs("status").value = "in-progress";
+  qs("title").value = "";
+  qs("instrumentation").value = "";
+  qs("year").value = "";
+  qs("duration").value = "";
+  qs("revised").value = "";
+  qs("image_alt").value = "";
+  qs("audio_caption").value = "";
+  qs("body").value = "";
+  qs("image_name").textContent = "";
+  qs("audio_name").textContent = "";
+  delete qs("image_name").dataset.value;
+  delete qs("audio_name").dataset.value;
+  qs("image_file").value = "";
+  qs("audio_file").value = "";
+});
+
+list();
+</script>
+</body>
+</html>`;
+
+  return {
+    name: "works-dev-gui",
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        try {
+          // GUI page
+          if (req.url === GUI_ROUTE || req.url?.startsWith(GUI_ROUTE + "?")) {
+            res.statusCode = 200;
+            res.setHeader("content-type", "text/html; charset=utf-8");
+            res.end(htmlPage);
+            return;
+          }
+
+          // API: list
+          if (req.url === API_BASE + "/list") {
+            await fs.mkdir(entriesDir, { recursive: true });
+            const files = (await fs.readdir(entriesDir))
+              .filter(f => f.toLowerCase().endsWith(".md"))
+              .sort();
+
+            const items = [];
+            for (const file of files) {
+              const md = await fs.readFile(path.join(entriesDir, file), "utf8");
+              const { data } = parseFrontmatter(md);
+              items.push({
+                file,
+                title: data.title || "",
+                status: data.status || "",
+                year: data.year || "",
+              });
+            }
+
+            res.statusCode = 200;
+            res.setHeader("content-type", "application/json; charset=utf-8");
+            res.end(JSON.stringify({ items }));
+            return;
+          }
+
+          // API: read
+          if (req.url?.startsWith(API_BASE + "/read")) {
+            const u = new URL(req.url, "http://localhost");
+            const file = safeBasename(u.searchParams.get("file"));
+            if (!file) throw new Error("Invalid file.");
+            const full = path.join(entriesDir, file);
+            const md = await fs.readFile(full, "utf8");
+
+            res.statusCode = 200;
+            res.setHeader("content-type", "application/json; charset=utf-8");
+            res.end(JSON.stringify({ file, md }));
+            return;
+          }
+
+          // API: save
+          if (req.url === API_BASE + "/save" && req.method === "POST") {
+            let raw = "";
+            req.on("data", (c) => (raw += c));
+            req.on("end", async () => {
+              try {
+                const payload = JSON.parse(raw || "{}");
+                const file = safeBasename(payload.file);
+                if (!file) throw new Error("Invalid file name.");
+
+                const fields = payload.fields || {};
+                const body = payload.body || "";
+
+                await fs.mkdir(entriesDir, { recursive: true });
+                const md = buildMd(fields, body);
+                await fs.writeFile(path.join(entriesDir, file), md, "utf8");
+
+                res.statusCode = 200;
+                res.setHeader("content-type", "application/json; charset=utf-8");
+                res.end(JSON.stringify({ ok: true, file }));
+              } catch (err) {
+                res.statusCode = 400;
+                res.setHeader("content-type", "application/json; charset=utf-8");
+                res.end(JSON.stringify({ error: err?.message || "Error" }));
+              }
+            });
+            return;
+          }
+
+          // API: upload
+          if (req.url === API_BASE + "/upload" && req.method === "POST") {
+            let raw = "";
+            req.on("data", (c) => (raw += c));
+            req.on("end", async () => {
+              try {
+                const payload = JSON.parse(raw || "{}");
+                const kind = payload.kind;
+                const name = safeBasename(payload.name);
+                const bytes = payload.bytes;
+
+                if (!name) throw new Error("Invalid file name.");
+                if (!Array.isArray(bytes)) throw new Error("Invalid bytes.");
+                if (kind !== "image" && kind !== "audio") throw new Error("Invalid kind.");
+
+                const dir = kind === "image" ? publicImgDir : publicMp3Dir;
+                await fs.mkdir(dir, { recursive: true });
+
+                const outPath = path.join(dir, name);
+                await fs.writeFile(outPath, Buffer.from(bytes), { encoding: "binary" });
+
+                res.statusCode = 200;
+                res.setHeader("content-type", "application/json; charset=utf-8");
+                res.end(JSON.stringify({ ok: true, savedAs: name }));
+              } catch (err) {
+                res.statusCode = 400;
+                res.setHeader("content-type", "application/json; charset=utf-8");
+                res.end(JSON.stringify({ error: err?.message || "Error" }));
+              }
+            });
             return;
           }
 
@@ -554,6 +1074,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     currentsDevGui(),
+    worksDevGui(),
   ],
 });
 

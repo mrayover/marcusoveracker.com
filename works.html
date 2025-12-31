@@ -9,7 +9,7 @@
 
 <body class="min-h-screen bg-white text-black" data-page="works">
 
-  <main class="min-h-screen flex flex-col items-center justify-start text-center px-6 pt-24">
+<main class="min-h-screen flex flex-col items-center justify-start text-center px-6 pt-24 works-main">
     <header class="flex flex-col items-center gap-4 w-full">
       <h1 class="text-4xl md:text-5xl font-light tracking-wide">Marcus Overacker</h1>
 
@@ -58,26 +58,198 @@
         </nav>
       </header>
 
-      <section class="mt-14 space-y-6 w-full max-w-xl">
-        <h2 class="text-xl tracking-wide">Works</h2>
+<div class="page-titlebar">
+  <div class="page-titlebar-title">WORKS</div>
+</div>
 
-        <!-- Placeholder catalog -->
-        <ul class="space-y-4 text-left">
-          <li class="border border-neutral-300 p-4">
-            <div class="tracking-wide">EMERGE</div>
-            <div class="text-sm text-neutral-600">Electroacoustic performance / installation · In progress</div>
-          </li>
 
-          <li class="border border-neutral-300 p-4">
-            <div class="tracking-wide">Tree of Life</div>
-            <div class="text-sm text-neutral-600">Flex ensemble graphic score · 2024</div>
-          </li>
-        </ul>
 
-        <div class="pt-8 border-t border-neutral-200">
-          <a href="/contact.html" class="underline underline-offset-4 text-sm">Contact for scores</a>
-        </div>
-      </section>
+
+
+<p class="text-sm text-neutral-700 leading-relaxed text-left">
+  A working index of compositions; some are revised as performances accumulate.
+</p>
+
+<!-- WORKS:START -->
+<div class="works-list space-y-10">
+  <section class="space-y-3">
+  <h3 class="text-xs tracking-widest uppercase text-neutral-500">In Progress</h3>
+  <div class="space-y-4">
+    <article class="border border-neutral-200 p-4 text-center" data-works-row>
+  <div class="tracking-wide"><span class="text-sm text-neutral-900">Example Work</span></div>
+  <div class="text-sm text-neutral-600 mt-1">solo guitar</div>
+  <div class="text-xs text-neutral-600 mt-1"><span>2025</span> · <span>~6 min</span></div>
+  
+  
+  <div class="pt-3 text-sm text-neutral-800 leading-relaxed works-notes text-left">
+  <p>Optional description / notes in markdown.</p>
+
+</div>
+</article>
+  </div>
+</section>
+
+<section class="space-y-3">
+  <h3 class="text-xs tracking-widest uppercase text-neutral-500">In Revision</h3>
+  <div class="space-y-4">
+    <article class="border border-neutral-200 p-4 text-center" data-works-row>
+  <div class="tracking-wide"><button type="button" class="works-title-link text-sm underline underline-offset-4 text-neutral-800 hover:text-black transition" data-works-toggle="image">
+         Test
+       </button></div>
+  <div class="text-sm text-neutral-600 mt-1">Guitar and voice</div>
+  <div class="text-xs text-neutral-600 mt-1"><span>2025</span> · <span>1:45</span></div>
+  <div class="works-drawer max-h-0 overflow-hidden transition-[max-height] duration-200 ease-out" data-works-drawer="image">
+  <div class="pt-3">
+    <img
+      src="/img/works/Beatles.png"
+      alt=""
+      class="works-cover block w-full max-w-[520px] mx-auto h-auto border border-neutral-200"
+      loading="lazy"
+    />
+
+  </div>
+</div>
+  <div class="pt-3 space-y-2">
+  <a
+    class="text-sm underline underline-offset-4 text-neutral-700 hover:text-black transition"
+    href="/mp3/works/Golden_Slumbers.mp3"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Audio (mp3)
+  </a>
+
+  <audio controls preload="none" class="w-full">
+    <source src="/mp3/works/Golden_Slumbers.mp3" type="audio/mpeg" />
+  </audio>
+
+  <div class="text-xs text-neutral-600">Testing</div>
+</div>
+  <div class="pt-3 text-sm text-neutral-800 leading-relaxed works-notes text-left">
+  <p>Another Test for the body and program notes is it not?</p>
+
+</div>
+</article>
+  </div>
+</section>
+
+<section class="space-y-3">
+  <h3 class="text-xs tracking-widest uppercase text-neutral-500">Completed</h3>
+  <div class="space-y-4">
+    <article class="border border-neutral-200 p-4 text-center" data-works-row>
+  <div class="tracking-wide"><button type="button" class="works-title-link text-sm underline underline-offset-4 text-neutral-800 hover:text-black transition" data-works-toggle="image">
+         Golden Slumbers
+       </button></div>
+  <div class="text-sm text-neutral-600 mt-1">12-string guitar, voice</div>
+  <div class="text-xs text-neutral-600 mt-1"><span>2025</span> · <span>2:30</span> · <span class="text-neutral-500">rev. 2025</span></div>
+  <div class="works-drawer max-h-0 overflow-hidden transition-[max-height] duration-200 ease-out" data-works-drawer="image">
+  <div class="pt-3">
+    <img
+      src="/img/works/Beatles.png"
+      alt=""
+      class="works-cover block w-full max-w-[520px] mx-auto h-auto border border-neutral-200"
+      loading="lazy"
+    />
+
+  </div>
+</div>
+  <div class="pt-3 space-y-2">
+  <a
+    class="text-sm underline underline-offset-4 text-neutral-700 hover:text-black transition"
+    href="/mp3/works/Golden_Slumbers.mp3"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Audio (mp3)
+  </a>
+
+  <audio controls preload="none" class="w-full">
+    <source src="/mp3/works/Golden_Slumbers.mp3" type="audio/mpeg" />
+  </audio>
+
+  <div class="text-xs text-neutral-600">Recorded 12/27/2025</div>
+</div>
+  
+</article>
+<article class="border border-neutral-200 p-4 text-center" data-works-row>
+  <div class="tracking-wide"><button type="button" class="works-title-link text-sm underline underline-offset-4 text-neutral-800 hover:text-black transition" data-works-toggle="image">
+         ETUDE
+       </button></div>
+  <div class="text-sm text-neutral-600 mt-1">Classical Guitar</div>
+  <div class="text-xs text-neutral-600 mt-1"><span>2021</span> · <span>~2:50</span></div>
+  <div class="works-drawer max-h-0 overflow-hidden transition-[max-height] duration-200 ease-out" data-works-drawer="image">
+  <div class="pt-3">
+    <img
+      src="/img/works/ETUDE.png"
+      alt=""
+      class="works-cover block w-full max-w-[520px] mx-auto h-auto border border-neutral-200"
+      loading="lazy"
+    />
+
+  </div>
+</div>
+  <div class="pt-3 space-y-2">
+  <a
+    class="text-sm underline underline-offset-4 text-neutral-700 hover:text-black transition"
+    href="/mp3/works/Etude.mp3"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Audio (mp3)
+  </a>
+
+  <audio controls preload="none" class="w-full">
+    <source src="/mp3/works/Etude.mp3" type="audio/mpeg" />
+  </audio>
+
+  
+</div>
+  
+</article>
+  </div>
+</section>
+</div>
+<script>
+(function () {
+  const root = document.querySelector(".works-list");
+  if (!root) return;
+
+  function closeAllExcept(exceptRow) {
+    root.querySelectorAll("[data-works-row]").forEach((row) => {
+      if (row === exceptRow) return;
+      const drawer = row.querySelector('[data-works-drawer="image"]');
+      if (drawer) drawer.classList.remove("max-h-[800px]");
+    });
+  }
+
+  root.addEventListener("click", (e) => {
+    const btn = e.target.closest('[data-works-toggle="image"]');
+    if (!btn) return;
+
+    const row = btn.closest("[data-works-row]");
+    if (!row) return;
+
+    const drawer = row.querySelector('[data-works-drawer="image"]');
+    if (!drawer) return;
+
+    const isOpen = drawer.classList.contains("max-h-[800px]");
+    closeAllExcept(row);
+    drawer.classList.toggle("max-h-[800px]", !isOpen);
+  });
+})();
+</script>
+<!-- WORKS:END -->
+
+<div class="mt-12 pb-12 flex justify-center">
+  <a
+    href="/contact.html"
+    class="text-sm underline underline-offset-4 text-neutral-700 hover:text-black transition"
+  >
+    Inquire about scores
+  </a>
+</div>
+
+
     </main>
 
     <script type="module" src="/src/main.js"></script>

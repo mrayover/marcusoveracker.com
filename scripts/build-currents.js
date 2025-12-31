@@ -38,6 +38,24 @@ const parseFrontmatter = (md) => {
 
   return { data, body };
 };
+const normalizePublicAssetPath = (p) => {
+  if (!p || typeof p !== "string") return "";
+  const s = p.trim();
+  if (!s) return "";
+
+  // already correct
+  if (s.startsWith("/img/")) return s;
+
+  // user entered "/currents/..." but assets live in "/img/currents/..."
+  if (s.startsWith("/currents/")) return `/img${s}`;
+
+  // handle non-leading-slash variants
+  if (s.startsWith("img/")) return `/${s}`;
+  if (s.startsWith("currents/")) return `/img/${s}`;
+
+  // fallback: leave as-is (supports full URLs, etc.)
+  return s;
+};
 
 const renderEntry = (data, body, file) => {
   const parts = [];
@@ -63,16 +81,16 @@ if (data.title && String(data.title).trim()) {
     
   );
 
-  if (data.audio_top && String(data.audio_top).trim()) {
-    parts.push(`<audio controls src="${String(data.audio_top).trim()}"></audio>`);
-  }
+if (data.audio_top && String(data.audio_top).trim()) {
+  parts.push(`<audio controls src="${normalizePublicAssetPath(String(data.audio_top))}"></audio>`);
+}
 
-  if (data.image_top && String(data.image_top).trim()) {
-    parts.push(
-      `<img src="${String(data.image_top).trim()}" alt="${data.image_alt || ""}">`
-    );
+if (data.image_top && String(data.image_top).trim()) {
+  parts.push(
+    `<img src="${normalizePublicAssetPath(String(data.image_top))}" alt="${data.image_alt || ""}">`
+  );
+}
 
-  }
 
   // URLs block (only if present)
 if (data.url_1) {
@@ -98,15 +116,16 @@ if (data.url_2) {
   );
 }
 
-  if (data.image_bottom && String(data.image_bottom).trim()) {
-    parts.push(
-      `<img src="${String(data.image_bottom).trim()}" alt="${data.image_alt || ""}">`
-    );
-  }
+if (data.image_bottom && String(data.image_bottom).trim()) {
+  parts.push(
+    `<img src="${normalizePublicAssetPath(String(data.image_bottom))}" alt="${data.image_alt || ""}">`
+  );
+}
 
-  if (data.audio_bottom && String(data.audio_bottom).trim()) {
-    parts.push(`<audio controls src="${String(data.audio_bottom).trim()}"></audio>`);
-  }
+if (data.audio_bottom && String(data.audio_bottom).trim()) {
+  parts.push(`<audio controls src="${normalizePublicAssetPath(String(data.audio_bottom))}"></audio>`);
+}
+
         parts.push(`<hr class="currents-seperator">`);
   return `
 <article class="currents-entry">

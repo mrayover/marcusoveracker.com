@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Works Admin (Local)</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <style>
+      /* Minimal, matches site restraint */
+      .admin-wrap { max-width: 920px; margin: 0 auto; padding: 24px 16px 64px; }
+      .admin-top { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+      .admin-top button { padding: 8px 10px; border: 1px solid #111; background: #fff; cursor: pointer; }
+      .admin-top button:disabled { opacity: 0.5; cursor: not-allowed; }
+      .admin-note { font-size: 12px; color: #555; line-height: 1.4; margin-top: 8px; }
+      .admin-grid { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 18px; }
+      .section { border: 1px solid #e2e2e2; padding: 12px; }
+      .section h2 { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; margin: 0 0 10px; }
+      .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 10px; border: 1px solid #eee; }
+      .row + .row { margin-top: 10px; }
+      .meta { font-size: 12px; color: #666; margin-top: 4px; }
+      .actions { display: flex; gap: 8px; align-items: center; }
+      .actions button { padding: 6px 8px; border: 1px solid #111; background: #fff; cursor: pointer; font-size: 12px; }
+      .danger { border-color: #7a0000 !important; color: #7a0000; }
+      .pill { display: inline-block; font-size: 11px; border: 1px solid #ddd; padding: 2px 6px; border-radius: 999px; margin-left: 8px; color: #444; }
+      .small { font-size: 12px; color: #444; }
+    </style>
+  </head>
+
+  <body>
+    <div class="admin-wrap">
+      <div class="admin-top">
+        <button id="pickDirBtn">Open src/works/entries</button>
+        <button id="reloadBtn" disabled>Reload list</button>
+      </div>
+      <div class="admin-note">
+        Local-only. Uses the browser File System Access API (Chrome/Edge).
+        You must select your <b>src/works/entries</b> folder. This page can:
+        delete .md files and update frontmatter <code>order:</code> for reordering.
+      </div>
+
+      <div id="status" class="admin-note"></div>
+
+      <div class="admin-grid" id="sections"></div>
+    </div>
+
+    <script>
+const STATUS_ORDER = [
+  { key: "in-progress", label: "In Progress" },
+  { key: "in-revision", label: "In Revision" },
+  { key: "completed", label: "Completed" },
+  { key: "archived", label: "Archived" },
+];
+
+
+
+
+      let dirHandle = null;
+
+      function parseFrontmatter(md) {
+        const fm = {};
+        if (!md.startsWith("---")) return { fm, body: md };
+        const end = md.indexOf("\n---", 3);
+        if (end === -1) return { fm, body: md };
+
+        const raw = md.slice(3, end).trim();
+        const body = md.slice(end + 4).replace(/^\n/, "");
+
+        for (const line of raw.split("\n")) {
+          const m = line.match(/^([A-Za-z0-9_]+)\s*:\s*(.*)$/);
+          if (!m) continue;
+          const key = m[1].trim();
+          const val = m[2].trim();
+          fm[key] = val.replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1");
+        }
+        return { fm, body };
+      }
+
+      function buildFrontmatter(fm) {
+        const lines = [];
+        for (const [k, v] of Object.entries(fm)) {
+          if (v === undefined || v === null || String(v).trim() === "") continue;
+          // keep simple YAML scalars
+          lines.push(`${k}: ${String(v)}`);
+        }
+        return `---\n${lines.join("\n")}\n---\n`;
+      }
+
+      function upsertOrder(md, newOrder) {
+        const { fm, body } = parseFrontmatter(md);
+        fm.order = String(newOrder);
+        const header = buildFrontmatter(fm);
+        return header + body;
+      }
+
+      async function readTextFile(fileHandle) {
+        const file = await fileHandle.getFile();
+        return await file.text();
+      }
+
+      async function writeTextFile(fileHandle, text) {
+        const writable = await fileHandle.createWritable();
+        await writable.write(text);
+        await writable.close();
+      }
+
+      function normalizeOrder(val) {
+        const n = Number(val);
+        return Number.isFinite(n) ? n : null;
+      }
+function normalizeStatus(val) {
+  const s = String(val || "").trim().toLowerCase();
+  if (!s) return "in-progress";
+  // allow old underscore variants
+  const hy = s.replaceAll("_", "-");
+  if (hy === "in-progress" || hy === "in-revision" || hy === "completed" || hy === "archived") return hy;
+  return "in-progress";
+}
+
+      async function loadEntries() {
+        const entries = [];
+
+        for await (const [name, handle] of dirHandle.entries()) {
+          if (handle.kind !== "file") continue;
+          if (!name.toLowerCase().endsWith(".md")) continue;
+
+          const md = await readTextFile(handle);
+          const { fm } = parseFrontmatter(md);
+entries.push({
+  name,
+  handle,
+  title: fm.title || name.replace(/\.md$/i, ""),
+    status: normalizeStatus(fm.status),
+  year: fm.year || "",
+  duration: fm.duration || "",
+  revised: (fm.revised || fm.revision || "").replace(/^null$/i, ""),
+  order: normalizeOrder(fm.order),
+  _raw: md,
+});
+
+
+        }
+
+        // sort within status: order asc first, then year desc, then title asc
+        entries.sort((a, b) => {
+          if (a.status !== b.status) return a.status.localeCompare(b.status);
+
+          const ao = a.order;
+          const bo = b.order;
+          if (ao !== null && bo !== null && ao !== bo) return ao - bo;
+          if (ao !== null && bo === null) return -1;
+          if (ao === null && bo !== null) return 1;
+
+          if (a.year !== b.year) return String(b.year).localeCompare(String(a.year));
+          return String(a.title).localeCompare(String(b.title));
+        });
+
+        return entries;
+      }
+
+      function groupByStatus(entries) {
+        const grouped = {};
+        for (const s of STATUS_ORDER) grouped[s.key] = [];
+        for (const e of entries) (grouped[e.status] ||= []).push(e);
+        return grouped;
+      }
+
+      async function swapOrders(a, b) {
+        const ao = a.order ?? 9999;
+        const bo = b.order ?? 9999;
+
+        const aText = upsertOrder(a._raw, bo);
+        const bText = upsertOrder(b._raw, ao);
+
+        await writeTextFile(a.handle, aText);
+        await writeTextFile(b.handle, bText);
+      }
+
+      async function ensureDefaultOrders(list) {
+        // If items have no order, assign spaced orders (10,20,30...) once.
+        let changed = false;
+        let next = 10;
+        for (const item of list) {
+          if (item.order === null) {
+            item._raw = upsertOrder(item._raw, next);
+            await writeTextFile(item.handle, item._raw);
+            item.order = next;
+            next += 10;
+            changed = true;
+          } else {
+            next = Math.max(next, item.order + 10);
+          }
+        }
+        return changed;
+      }
+
+      function render(grouped) {
+        const root = document.getElementById("sections");
+        root.innerHTML = "";
+
+        for (const { key, label } of STATUS_ORDER) {
+          const list = grouped[key] || [];
+
+          const sec = document.createElement("div");
+          sec.className = "section";
+          sec.innerHTML = `<h2>${label} <span class="pill">${list.length}</span></h2>`;
+
+          list.forEach((item, idx) => {
+            const row = document.createElement("div");
+            row.className = "row";
+
+            const left = document.createElement("div");
+            left.innerHTML = `
+              <div><b>${item.title}</b> <span class="pill">order: ${item.order ?? "—"}</span></div>
+              <div class="meta">
+  ${item.year || ""}
+  ${item.duration ? ` · ${item.duration}` : ""}
+  ${item.revised ? ` · rev. ${item.revised}` : ""}
+</div>
+
+              <div class="meta small">${item.name}</div>
+            `;
+
+            const actions = document.createElement("div");
+            actions.className = "actions";
+
+            const upBtn = document.createElement("button");
+            upBtn.textContent = "Up";
+            upBtn.disabled = idx === 0;
+
+            const downBtn = document.createElement("button");
+            downBtn.textContent = "Down";
+            downBtn.disabled = idx === list.length - 1;
+
+            const delBtn = document.createElement("button");
+            delBtn.textContent = "Delete";
+            delBtn.className = "danger";
+
+            upBtn.addEventListener("click", async () => {
+              await ensureDefaultOrders(list);
+              await swapOrders(list[idx], list[idx - 1]);
+              await refresh();
+            });
+
+            downBtn.addEventListener("click", async () => {
+              await ensureDefaultOrders(list);
+              await swapOrders(list[idx], list[idx + 1]);
+              await refresh();
+            });
+
+            delBtn.addEventListener("click", async () => {
+              const ok = confirm(`Delete ${item.name}?\n\nThis removes the markdown file from src/works/entries.`);
+              if (!ok) return;
+
+              await dirHandle.removeEntry(item.name);
+              await refresh();
+            });
+
+            actions.append(upBtn, downBtn, delBtn);
+            row.append(left, actions);
+            sec.append(row);
+          });
+
+          root.append(sec);
+        }
+      }
+
+      async function refresh() {
+        const status = document.getElementById("status");
+        status.textContent = "Loading…";
+        const entries = await loadEntries();
+        const grouped = groupByStatus(entries);
+        render(grouped);
+        status.textContent = `Loaded ${entries.length} file(s).`;
+      }
+
+      document.getElementById("pickDirBtn").addEventListener("click", async () => {
+        try {
+          dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+          document.getElementById("reloadBtn").disabled = false;
+          document.getElementById("status").textContent =
+            "Folder selected. If this is not src/works/entries, click Open again and choose the right folder.";
+          await refresh();
+        } catch (e) {
+          document.getElementById("status").textContent = "Folder selection canceled.";
+        }
+      });
+
+      document.getElementById("reloadBtn").addEventListener("click", refresh);
+    </script>
+  </body>
+</html>

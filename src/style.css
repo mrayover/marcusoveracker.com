@@ -123,4 +123,73 @@ html { overflow-y: scroll; }
   border: 1px solid #000;
   pointer-events: none;
 }
+.page-titlebar {
+  width: min(56vw, 52rem);
+  max-width: 52rem;
 
+  /* align WORKS/ABOUT/CONTACT title baseline to Currents title inside bezel */
+  margin: calc(3rem + 0.45in) auto 0;
+
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #000;
+}
+
+
+@media (max-width: 768px) {
+  .page-titlebar {
+    width: 100%;
+  }
+}
+
+.page-titlebar-title {
+  padding: 1.2rem 1rem;
+  border-bottom: 1px solid #000;
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: 0.6em;
+}
+
+/* optional second line under title (Currents has it via the border-bottom already)
+   keep this as a thin spacer line if you want one more rule */
+.page-titlebar-divider {
+  border-top: 1px solid #000;
+}
+
+/* Shared section frame — structural, not visual */
+.section-frame {
+  max-width: 1100px;
+  margin: 0 auto 3rem auto;
+  padding: 3rem 2.5rem 2.5rem 2.5rem;
+  border: 1px solid transparent; /* IMPORTANT */
+}
+
+/* Visible frame (used by THE CURRENTS only) */
+.section-frame.is-framed {
+  border-color: #000;
+}
+.section-title {
+  text-align: center;
+  letter-spacing: 0.35em;
+  font-weight: 600; /* matches THE CURRENTS */
+  text-transform: uppercase;
+  margin: 0;
+}
+/* Push WORKS titlebar down to match the Currents title position exactly */
+.about-main .page-titlebar,
+.contact-main .page-titlebar,
+.works-main .page-titlebar {
+  margin-top: calc(3rem + 0.45in + 1.2rem + 20px);
+}
+/* Works: uniform cover sizing (no crop) */
+.works-cover {
+  width: 100%;
+  height: 420px;          /* fixed visual field */
+  object-fit: contain;    /* show whole image, no cropping */
+  display: block;
+  margin: 0 auto;
+}
+@media (max-width: 520px) {
+  .works-cover { height: 320px; }
+}
