@@ -197,3 +197,13 @@ html { overflow-y: scroll; }
 @media (max-width: 520px) {
   .works-cover { height: 320px; }
 }
+@media (max-width: 640px) {
+  .currents-frame {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100vw;
+    max-width: 100vw;
+    border-left: none;
+    border-right: none;
+  }
+}
