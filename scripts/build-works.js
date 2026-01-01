@@ -118,11 +118,20 @@ const notesBlock = hasBody
 `.trim()
   : "";
   // For click-to-open image: title becomes a link-like button only if image exists.
-  const titleEl = imageFile
+const pageHref = (w.page && typeof w.page === "string") ? w.page.trim() : "";
+
+// Priority: 1) page link (opens new tab), 2) image toggle, 3) plain text
+const titleEl = pageHref
+  ? `<a class="text-sm underline underline-offset-4 text-neutral-800 hover:text-black transition"
+        href="${escapeHtml(pageHref)}"
+        target="_blank"
+        rel="noopener noreferrer">${title}</a>`
+  : imageFile
     ? `<button type="button" class="works-title-link text-sm underline underline-offset-4 text-neutral-800 hover:text-black transition" data-works-toggle="image">
          ${title}
        </button>`
     : `<span class="text-sm text-neutral-900">${title}</span>`;
+
 
   const metaBits = [
     year ? `<span>${year}</span>` : "",
@@ -208,6 +217,7 @@ async function build() {
       instrumentation: data.instrumentation || "",
       duration: data.duration || "",
       revised: data.revised || "",
+      page: data.page || "",
       image: data.image || "",
       image_alt: data.image_alt || "",
       audio: data.audio || "",
