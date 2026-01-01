@@ -278,7 +278,7 @@ async function build() {
 `.trim();
 
 const injected = `
-<div class="works-list space-y-10">
+<div class="works-list space-y-10 w-full max-w-[920px] mx-auto">
   ${sectionsHtml}
 </div>
 ${interactionScript}
