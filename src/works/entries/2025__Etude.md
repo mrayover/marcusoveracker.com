@@ -4,7 +4,7 @@ title: ETUDE
 status: completed
 year: 2021
 instrumentation: Classical Guitar
-duration: ~2'50\"
+duration: ~3 min
 revised: null
 image: ETUDE.png
 audio: Etude.mp3

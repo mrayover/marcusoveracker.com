@@ -4,7 +4,7 @@ title: Counting Seconds
 status: completed
 year: 2023
 instrumentation: Piano
-duration: ~4'15\"
+duration: ~4 min
 revised: null
 image: counting_seconds_cover.png
 audio: counting_seconds.mp3

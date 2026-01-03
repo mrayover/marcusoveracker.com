@@ -4,7 +4,7 @@ title: "EMERGE"
 status: "in-progress"
 year: "ant. 2026"
 instrumentation: "Breath, Plucked Strings, and Yoto Player"
-duration: "~50 minutes"
+duration: "~50 min"
 revised: null
 page: /emerge.html
 image: ""
