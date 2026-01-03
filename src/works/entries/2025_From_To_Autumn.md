@@ -1,15 +1,14 @@
 ---
-id: "2025_From_To_Autumn"
-title: "From 'To Autumn'"
-status: "completed"
-year: "2023"
-instrumentation: "Pierrot Ensemble"
-duration: "~5 min"
+id: 2025_From_To_Autumn
+title: From 'To Autumn'
+status: completed
+year: 2023
+instrumentation: Pierrot Ensemble
+duration: ~5 min
 revised: null
-image: "to_autumn_cover.png"
-image_alt: ""
-audio: "to_autumn.mp3"
-audio_caption: ""
+image: to_autumn_cover.png
+audio: to_autumn.mp3
+order: 60
 ---
 <div align="center">
 

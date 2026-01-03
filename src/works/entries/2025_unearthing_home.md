@@ -1,15 +1,14 @@
 ---
-id: "2025_unearthing_home"
-title: "Unearthing Home"
-status: "completed"
-year: "2023"
-instrumentation: "Piano and Soprano Voice"
-duration: "~2 min"
+id: 2025_unearthing_home
+title: Unearthing Home
+status: completed
+year: 2023
+instrumentation: Piano and Soprano Voice
+duration: ~2 min
 revised: null
-image: "unearthing_home_cover.png"
-image_alt: ""
-audio: "unearthing_home.mp3"
-audio_caption: ""
+image: unearthing_home_cover.png
+audio: unearthing_home.mp3
+order: 30
 ---
 <div align="center">
 
