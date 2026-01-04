@@ -38,24 +38,34 @@ const parseFrontmatter = (md) => {
 
   return { data, body };
 };
-const normalizePublicAssetPath = (p) => {
+const normalizeImagePath = (p) => {
   if (!p || typeof p !== "string") return "";
   const s = p.trim();
   if (!s) return "";
 
-  // already correct
   if (s.startsWith("/img/")) return s;
-
-  // user entered "/currents/..." but assets live in "/img/currents/..."
   if (s.startsWith("/currents/")) return `/img${s}`;
 
-  // handle non-leading-slash variants
   if (s.startsWith("img/")) return `/${s}`;
   if (s.startsWith("currents/")) return `/img/${s}`;
 
-  // fallback: leave as-is (supports full URLs, etc.)
   return s;
 };
+
+const normalizeAudioPath = (p) => {
+  if (!p || typeof p !== "string") return "";
+  const s = p.trim();
+  if (!s) return "";
+
+  if (s.startsWith("/mp3/")) return s;
+  if (s.startsWith("/currents/")) return `/mp3${s}`;
+
+  if (s.startsWith("mp3/")) return `/${s}`;
+  if (s.startsWith("currents/")) return `/mp3/${s}`;
+
+  return s;
+};
+
 
 const renderEntry = (data, body, file) => {
   const parts = [];
@@ -75,55 +85,59 @@ if (data.title && String(data.title).trim()) {
 }
 
 
-
-  const links = [data.url_1, data.url_2, data.url_3].filter(
-    (u) => typeof u === "string" && u.trim().length > 0
-    
-  );
-
 if (data.audio_top && String(data.audio_top).trim()) {
-  parts.push(`<audio controls src="${normalizePublicAssetPath(String(data.audio_top))}"></audio>`);
+parts.push(`<audio controls src="${normalizeAudioPath(String(data.audio_top))}"></audio>`);
 }
 
 if (data.image_top && String(data.image_top).trim()) {
   parts.push(
-    `<img src="${normalizePublicAssetPath(String(data.image_top))}" alt="${data.image_alt || ""}">`
+    `<img src="${normalizeImagePath(String(data.image_top))}" alt="${data.image_alt || ""}">`
   );
 }
 
 
   // URLs block (only if present)
 if (data.url_1) {
+  const text = (data.url_1_text && String(data.url_1_text).trim())
+    ? String(data.url_1_text).trim()
+    : data.url_1;
+
   parts.push(
     `<div class="currents-links currents-links-top">
       <a href="${data.url_1}" target="_blank" rel="noopener noreferrer">
-        ${data.url_1}
+        ${text}
       </a>
     </div>`
   );
 }
+
 
 
   // Body markdown
   parts.push(marked.parse(body || ""));
 if (data.url_2) {
+  const text = (data.url_2_text && String(data.url_2_text).trim())
+    ? String(data.url_2_text).trim()
+    : data.url_2;
+
   parts.push(
-    `<div class="currents-links currents-links-bottom">
+    `<div class="currents-links currents-links-top">
       <a href="${data.url_2}" target="_blank" rel="noopener noreferrer">
-        ${data.url_2}
+        ${text}
       </a>
     </div>`
   );
 }
 
+
 if (data.image_bottom && String(data.image_bottom).trim()) {
   parts.push(
-    `<img src="${normalizePublicAssetPath(String(data.image_bottom))}" alt="${data.image_alt || ""}">`
+    `<img src="${normalizeImagePath(String(data.image_bottom))}" alt="${data.image_alt || ""}">`
   );
 }
 
 if (data.audio_bottom && String(data.audio_bottom).trim()) {
-  parts.push(`<audio controls src="${normalizePublicAssetPath(String(data.audio_bottom))}"></audio>`);
+parts.push(`<audio controls src="${normalizeAudioPath(String(data.audio_bottom))}"></audio>`);
 }
 
         parts.push(`<hr class="currents-seperator">`);

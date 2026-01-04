@@ -10,6 +10,11 @@ function currentsDevGui() {
   const root = process.cwd();
   const entriesDir = path.resolve(root, "src/currents/entries");
 
+  // NEW: Currents asset targets (matches your contract)
+  const publicImgDir = path.resolve(root, "public/img/currents");
+  const publicMp3Dir = path.resolve(root, "public/mp3/currents");
+
+
   const safeBasename = (name) => {
     // allow: letters, numbers, dash, underscore, dot
     const base = path.basename(name || "");
@@ -80,8 +85,9 @@ function currentsDevGui() {
       "archive",
       "tags",
       "url_1",
+      "url_1_text",
       "url_2",
-      "url_3",
+      "url_2_text",
       "image_top",
       "image_bottom",
       "image_alt",
@@ -89,6 +95,7 @@ function currentsDevGui() {
       "audio_bottom",
       "audio_caption",
     ];
+
 
     const esc = (v) => {
       if (v === null) return "null";
@@ -214,24 +221,30 @@ function currentsDevGui() {
         <div>
           <label>URL 1</label>
           <input id="url_1" type="text" />
+          <label style="margin-top:6px;">URL 1 text</label>
+          <input id="url_1_text" type="text" placeholder="what the link should say" />
         </div>
         <div>
           <label>URL 2</label>
           <input id="url_2" type="text" />
+          <label style="margin-top:6px;">URL 2 text</label>
+          <input id="url_2_text" type="text" placeholder="what the link should say" />
         </div>
       </div>
 
-      <label>URL 3</label>
-      <input id="url_3" type="text" />
 
       <div class="row">
         <div>
           <label>Image (top)</label>
-          <input id="image_top" type="text" placeholder="/img/..." />
+          <input id="image_top_file" type="file" accept="image/*" />
+          <div class="meta" id="image_top_name"></div>
+          <input id="image_top" type="text" placeholder="/img/currents/..." />
         </div>
         <div>
           <label>Image (bottom)</label>
-          <input id="image_bottom" type="text" placeholder="/img/..." />
+          <input id="image_bottom_file" type="file" accept="image/*" />
+          <div class="meta" id="image_bottom_name"></div>
+          <input id="image_bottom" type="text" placeholder="/img/currents/..." />
         </div>
       </div>
 
@@ -240,14 +253,19 @@ function currentsDevGui() {
 
       <div class="row">
         <div>
-          <label>Audio (top) [reserved]</label>
-          <input id="audio_top" type="text" placeholder="/audio/...mp3" />
+          <label>Audio (top)</label>
+          <input id="audio_top_file" type="file" accept="audio/mpeg,audio/mp3" />
+          <div class="meta" id="audio_top_name"></div>
+          <input id="audio_top" type="text" placeholder="/mp3/currents/...mp3" />
         </div>
         <div>
-          <label>Audio (bottom) [reserved]</label>
-          <input id="audio_bottom" type="text" placeholder="/audio/...mp3" />
+          <label>Audio (bottom)</label>
+          <input id="audio_bottom_file" type="file" accept="audio/mpeg,audio/mp3" />
+          <div class="meta" id="audio_bottom_name"></div>
+          <input id="audio_bottom" type="text" placeholder="/mp3/currents/...mp3" />
         </div>
       </div>
+
 
       <label>Audio caption [reserved]</label>
       <input id="audio_caption" type="text" />
@@ -280,7 +298,7 @@ function currentsDevGui() {
     tags: document.getElementById("tags"),
     url_1: document.getElementById("url_1"),
     url_2: document.getElementById("url_2"),
-    url_3: document.getElementById("url_3"),
+
     image_top: document.getElementById("image_top"),
     image_bottom: document.getElementById("image_bottom"),
     image_alt: document.getElementById("image_alt"),
@@ -288,6 +306,19 @@ function currentsDevGui() {
     audio_bottom: document.getElementById("audio_bottom"),
     audio_caption: document.getElementById("audio_caption"),
     body: document.getElementById("body"),
+        url_1_text: document.getElementById("url_1_text"),
+    url_2_text: document.getElementById("url_2_text"),
+
+    image_top_file: document.getElementById("image_top_file"),
+    image_bottom_file: document.getElementById("image_bottom_file"),
+    audio_top_file: document.getElementById("audio_top_file"),
+    audio_bottom_file: document.getElementById("audio_bottom_file"),
+
+    image_top_name: document.getElementById("image_top_name"),
+    image_bottom_name: document.getElementById("image_bottom_name"),
+    audio_top_name: document.getElementById("audio_top_name"),
+    audio_bottom_name: document.getElementById("audio_bottom_name"),
+
   };
 
   let currentFile = null;
@@ -310,14 +341,26 @@ function currentsDevGui() {
     els.tags.value = "";
     els.url_1.value = "";
     els.url_2.value = "";
-    els.url_3.value = "";
-    els.image_top.value = "";
+        els.image_top.value = "";
     els.image_bottom.value = "";
     els.image_alt.value = "";
     els.audio_top.value = "";
     els.audio_bottom.value = "";
     els.audio_caption.value = "";
     els.body.value = "";
+        els.url_1_text.value = "";
+    els.url_2_text.value = "";
+
+    els.image_top_file.value = "";
+    els.image_bottom_file.value = "";
+    els.audio_top_file.value = "";
+    els.audio_bottom_file.value = "";
+
+    els.image_top_name.textContent = "";
+    els.image_bottom_name.textContent = "";
+    els.audio_top_name.textContent = "";
+    els.audio_bottom_name.textContent = "";
+
     [...els.list.children].forEach(li => li.classList.remove("active"));
     setMsg("New entry (not saved).");
   };
@@ -358,7 +401,6 @@ li.innerHTML = \`
         els.tags.value = (payload.data.tags || []).join(", ");
         els.url_1.value = payload.data.url_1 || "";
         els.url_2.value = payload.data.url_2 || "";
-        els.url_3.value = payload.data.url_3 || "";
         els.image_top.value = payload.data.image_top || "";
         els.image_bottom.value = payload.data.image_bottom || "";
         els.image_alt.value = payload.data.image_alt || "";
@@ -366,6 +408,14 @@ li.innerHTML = \`
         els.audio_bottom.value = payload.data.audio_bottom || "";
         els.audio_caption.value = payload.data.audio_caption || "";
         els.body.value = payload.body || "";
+                els.url_1_text.value = payload.data.url_1_text || "";
+        els.url_2_text.value = payload.data.url_2_text || "";
+
+        els.image_top_name.textContent = payload.data.image_top ? ("image_top: " + payload.data.image_top) : "";
+        els.image_bottom_name.textContent = payload.data.image_bottom ? ("image_bottom: " + payload.data.image_bottom) : "";
+        els.audio_top_name.textContent = payload.data.audio_top ? ("audio_top: " + payload.data.audio_top) : "";
+        els.audio_bottom_name.textContent = payload.data.audio_bottom ? ("audio_bottom: " + payload.data.audio_bottom) : "";
+
         setMsg("Loaded: " + it.file);
       });
             // delete button (stop row-click)
@@ -394,6 +444,52 @@ li.innerHTML = \`
     }
     setMsg("Loaded entries list.");
   };
+  async function upload(kind, file) {
+    const name = file.name;
+    const buf = await file.arrayBuffer();
+    const bytes = Array.from(new Uint8Array(buf));
+
+    const res = await fetch(API + "/upload", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ kind, name, bytes }),
+    });
+
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(out.error || "Upload failed.");
+    return out.savedAs; // filename only
+  }
+  els.image_top_file.addEventListener("change", async (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const savedAs = await upload("image", f);
+    els.image_top.value = "/img/currents/" + savedAs;   // IMPORTANT: matches build-currents normalize rules
+    els.image_top_name.textContent = "image_top: " + els.image_top.value;
+  });
+
+  els.image_bottom_file.addEventListener("change", async (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const savedAs = await upload("image", f);
+    els.image_bottom.value = "/img/currents/" + savedAs;
+    els.image_bottom_name.textContent = "image_bottom: " + els.image_bottom.value;
+  });
+
+  els.audio_top_file.addEventListener("change", async (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const savedAs = await upload("audio", f);
+    els.audio_top.value = "/mp3/currents/" + savedAs;
+    els.audio_top_name.textContent = "audio_top: " + els.audio_top.value;
+  });
+
+  els.audio_bottom_file.addEventListener("change", async (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const savedAs = await upload("audio", f);
+    els.audio_bottom.value = "/mp3/currents/" + savedAs;
+    els.audio_bottom_name.textContent = "audio_bottom: " + els.audio_bottom.value;
+  });
 
 
   const gather = () => {
@@ -413,7 +509,8 @@ li.innerHTML = \`
         tags,
         url_1: els.url_1.value,
         url_2: els.url_2.value,
-        url_3: els.url_3.value,
+        url_1_text: els.url_1_text.value,
+        url_2_text: els.url_2_text.value,
         image_top: els.image_top.value,
         image_bottom: els.image_bottom.value,
         image_alt: els.image_alt.value,
@@ -577,6 +674,29 @@ li.innerHTML = \`
             res.end(JSON.stringify({ file }));
             return;
           }
+          // API: upload (images + mp3 to public/)
+          if (req.method === "POST" && req.url === `${API_BASE}/upload`) {
+            const payload = await readJson();
+            const kind = payload.kind;
+            const name = safeBasename(payload.name);
+            const bytes = payload.bytes;
+
+            if (!name) throw new Error("Invalid file name.");
+            if (!Array.isArray(bytes)) throw new Error("Invalid bytes.");
+            if (kind !== "image" && kind !== "audio") throw new Error("Invalid kind.");
+
+            const dir = kind === "image" ? publicImgDir : publicMp3Dir;
+            await fs.mkdir(dir, { recursive: true });
+
+            const outPath = path.join(dir, name);
+            await fs.writeFile(outPath, Buffer.from(bytes), { encoding: "binary" });
+
+            res.statusCode = 200;
+            res.setHeader("content-type", "application/json; charset=utf-8");
+            res.end(JSON.stringify({ ok: true, savedAs: name }));
+            return;
+          }
+
           // API: delete
           if (req.method === "POST" && req.url === `${API_BASE}/delete`) {
             const payload = await readJson();
