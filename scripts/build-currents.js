@@ -91,7 +91,7 @@ parts.push(`<audio controls src="${normalizeAudioPath(String(data.audio_top))}">
 
 if (data.image_top && String(data.image_top).trim()) {
   parts.push(
-    `<img src="${normalizeImagePath(String(data.image_top))}" alt="${data.image_alt || ""}">`
+    `<img class="currents-image" src="${normalizeImagePath(String(data.image_top))}" alt="${data.image_alt || ""}">`
   );
 }
 
@@ -129,10 +129,9 @@ if (data.url_2) {
   );
 }
 
-
 if (data.image_bottom && String(data.image_bottom).trim()) {
   parts.push(
-    `<img src="${normalizeImagePath(String(data.image_bottom))}" alt="${data.image_alt || ""}">`
+    `<img class="currents-image" src="${normalizeImagePath(String(data.image_bottom))}" alt="${data.image_alt || ""}">`
   );
 }
 

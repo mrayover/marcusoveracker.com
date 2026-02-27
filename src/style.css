@@ -43,9 +43,13 @@ html { overflow-y: scroll; }
 }
 .currents-entry img {
   display: block;
-  margin: 1.5rem auto;
-  max-width: 25%;
   height: auto;
+
+  /* Big, responsive presence */
+  width: clamp(320px, 72%, 900px);
+  max-width: 100%;
+
+  margin: 1.5rem auto;
 }
 .currents-separator {
   border: 0;
