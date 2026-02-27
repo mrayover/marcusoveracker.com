@@ -1205,7 +1205,7 @@ build: {
         about: path.resolve(process.cwd(), "about.html"),
         contact: path.resolve(process.cwd(), "contact.html"),
         emerge: path.resolve(__dirname, 'emerge.html'),
-        // if you have it in the root too:
+        links: path.resolve(process.cwd(), "links.html"), 
         "works-admin": path.resolve(process.cwd(), "works-admin.html"),
       },
     },
