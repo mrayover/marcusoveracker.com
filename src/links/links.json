@@ -5,10 +5,6 @@
       "title": null,
       "links": [
         {
-          "label": "Instagram",
-          "url": "https://instagram.com/"
-        },
-        {
           "label": "YouTube",
           "url": "https://youtube.com/"
         },
@@ -20,11 +16,11 @@
     },
     {
       "id": "230a57e7-140e-405d-b111-1713d8ccf667",
-      "title": "New Section",
+      "title": "EMERGE",
       "links": [
         {
           "label": "EMERGE",
-          "url": "https://https://www.marcusoveracker.com/emerge"
+          "url": "https://www.marcusoveracker.com/emerge"
         }
       ]
     }
