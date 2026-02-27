@@ -43,13 +43,9 @@ html { overflow-y: scroll; }
 }
 .currents-entry img {
   display: block;
-  height: auto;
-
-  /* Big, responsive presence */
-  width: clamp(320px, 72%, 900px);
-  max-width: 100%;
-
   margin: 1.5rem auto;
+  max-width: 25%;
+  height: auto;
 }
 .currents-separator {
   border: 0;
@@ -233,4 +229,41 @@ html, body {
 .discretus-anchor img {
   width: 48px;
   height: auto;
+}
+
+/* --- Links page --- */
+.links-wrap { text-align: center; }
+.links-section { text-align: center; }
+.links-section-title {
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #555;
+  margin-bottom: 0.75rem;
+}
+.links-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column; /* fixes inline links */
+  gap: 0.65rem;
+  align-items: center;
+}
+.links-a {
+  font-size: 1rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Center the subtle Links pre-button and set visited to deep forest green */
+.links-prebutton-wrapper { text-align: center; }
+.links-prebutton:visited { color: #0b3d2e; }
+
+/* Currents images: occupy more of the frame width */
+.currents-image {
+  display: block;
+  height: auto;
+  width: min(100%, 920px);
+  margin: 1.5rem auto;
 }

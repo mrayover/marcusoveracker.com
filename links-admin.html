@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Links Admin (Local)</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <style>
+      .admin-wrap{max-width:920px;margin:0 auto;padding:24px 16px 64px}
+      .admin-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+      .admin-top button{padding:8px 10px;border:1px solid #111;background:#fff;cursor:pointer}
+      .admin-top button:disabled{opacity:.5;cursor:not-allowed}
+      .admin-note{font-size:12px;color:#555;line-height:1.4;margin-top:8px}
+      .admin-grid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:18px}
+      .section{border:1px solid #e2e2e2;padding:12px}
+      .section h2{font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin:0 0 10px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+      .row{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px;border:1px solid #eee}
+      .row+.row{margin-top:10px}
+      .meta{font-size:12px;color:#666;margin-top:4px;word-break:break-all}
+      .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+      .actions button{padding:6px 8px;border:1px solid #111;background:#fff;cursor:pointer;font-size:12px}
+      .danger{border-color:#7a0000!important;color:#7a0000}
+      dialog{border:1px solid #111;padding:14px;max-width:520px;width:calc(100% - 24px)}
+      dialog::backdrop{background:rgba(0,0,0,.25)}
+      label{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#444;margin-top:10px}
+      input{width:100%;padding:8px 10px;border:1px solid #ddd}
+      .dlg-actions{display:flex;gap:10px;margin-top:14px;justify-content:flex-end}
+    </style>
+  </head>
+  <body>
+    <div class="admin-wrap">
+      <div class="admin-top">
+        <button id="pickFileBtn">Open src/links/links.json</button>
+        <button id="reloadBtn" disabled>Reload</button>
+        <button id="addSectionBtn" disabled>Add section</button>
+      </div>
+      <div class="admin-note">
+        Local-only. Uses the browser File System Access API (Chrome/Edge).
+        Pick your <b>src/links/links.json</b> file. Edit sections, add links, reorder.
+      </div>
+      <div id="status" class="admin-note"></div>
+      <div class="admin-grid" id="sections"></div>
+    </div>
+
+    <dialog id="linkDlg">
+      <form method="dialog">
+        <div style="font-size:12px;color:#444"><b id="dlgTitle">Edit link</b></div>
+        <label>Label</label>
+        <input id="dlgLabel" autocomplete="off" />
+        <label>URL (https://...)</label>
+        <input id="dlgUrl" autocomplete="off" />
+        <div class="dlg-actions">
+          <button value="cancel">Cancel</button>
+          <button value="ok">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="sectionDlg">
+      <form method="dialog">
+        <div style="font-size:12px;color:#444"><b>Edit section</b></div>
+        <label>Section title (blank = General)</label>
+        <input id="secTitle" autocomplete="off" />
+        <div class="dlg-actions">
+          <button value="cancel">Cancel</button>
+          <button value="ok">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script>
+      let fileHandle=null;
+      let data={sections:[]};
+      let editingLink=null;
+      let editingSection=null;
+
+      const statusEl=document.getElementById("status");
+      const rootEl=document.getElementById("sections");
+
+      function setStatus(msg){statusEl.textContent=msg;}
+
+      async function readJson(){
+        const f=await fileHandle.getFile();
+        const txt=await f.text();
+        try{return JSON.parse(txt);}catch{return {sections:[]};}
+      }
+      async function writeJson(obj){
+        const w=await fileHandle.createWritable();
+        await w.write(JSON.stringify(obj,null,2));
+        await w.close();
+      }
+      function ensureShape(obj){
+        if(!obj||typeof obj!=="object") obj={};
+        if(!Array.isArray(obj.sections)) obj.sections=[];
+        obj.sections=obj.sections.map(s=>({
+          id:s.id||crypto.randomUUID(),
+          title:(s.title??null),
+          links:Array.isArray(s.links)?s.links.map(l=>({label:l.label||"",url:l.url||""})):[]
+        }));
+        return obj;
+      }
+      function move(arr,from,to){
+        if(to<0||to>=arr.length) return;
+        const [x]=arr.splice(from,1);
+        arr.splice(to,0,x);
+      }
+      async function persist(){
+        await writeJson(data);
+        render();
+        setStatus("Saved.");
+      }
+
+      function render(){
+        rootEl.innerHTML="";
+        data.sections.forEach((s,si)=>{
+          const title=(s.title==null||String(s.title).trim()==="")?"General":String(s.title).trim();
+          const sec=document.createElement("div");
+          sec.className="section";
+          sec.innerHTML=`
+            <h2>
+              <span>${title}</span>
+              <span class="actions">
+                <button data-act="sec-up" ${si===0?"disabled":""}>↑</button>
+                <button data-act="sec-down" ${si===data.sections.length-1?"disabled":""}>↓</button>
+                <button data-act="sec-edit">Edit</button>
+                <button data-act="sec-del" class="danger">Delete</button>
+                <button data-act="link-add">Add link</button>
+              </span>
+            </h2>
+            <div class="list"></div>
+          `;
+          const list=sec.querySelector(".list");
+          s.links.forEach((l,li)=>{
+            const row=document.createElement("div");
+            row.className="row";
+            row.innerHTML=`
+              <div>
+                <div style="font-size:12px"><b>${l.label||"(untitled)"}</b></div>
+                <div class="meta">${l.url||""}</div>
+              </div>
+              <div class="actions">
+                <button data-act="up" ${li===0?"disabled":""}>↑</button>
+                <button data-act="down" ${li===s.links.length-1?"disabled":""}>↓</button>
+                <button data-act="edit">Edit</button>
+                <button data-act="del" class="danger">Delete</button>
+              </div>
+            `;
+            row.querySelectorAll("button").forEach(b=>{
+              b.addEventListener("click",async()=>{
+                const act=b.getAttribute("data-act");
+                if(act==="up"){move(s.links,li,li-1); await persist();}
+                if(act==="down"){move(s.links,li,li+1); await persist();}
+                if(act==="edit"){openLinkDlg(si,li);}
+                if(act==="del"){ if(!confirm(`Delete "${l.label}"?`)) return; s.links.splice(li,1); await persist(); }
+              });
+            });
+            list.appendChild(row);
+          });
+
+          sec.querySelectorAll("h2 button").forEach(b=>{
+            b.addEventListener("click",async()=>{
+              const act=b.getAttribute("data-act");
+              if(act==="sec-up"){move(data.sections,si,si-1); await persist();}
+              if(act==="sec-down"){move(data.sections,si,si+1); await persist();}
+              if(act==="sec-del"){ if(!confirm(`Delete section "${title}"?`)) return; data.sections.splice(si,1); await persist(); }
+              if(act==="link-add"){openLinkDlg(si,null);}
+              if(act==="sec-edit"){openSectionDlg(si);}
+            });
+          });
+
+          rootEl.appendChild(sec);
+        });
+      }
+
+      const linkDlg=document.getElementById("linkDlg");
+      const dlgTitle=document.getElementById("dlgTitle");
+      const dlgLabel=document.getElementById("dlgLabel");
+      const dlgUrl=document.getElementById("dlgUrl");
+
+      function openLinkDlg(si,li){
+        editingLink={si,li};
+        dlgTitle.textContent=(li==null)?"Add link":"Edit link";
+        const link=(li==null)?{label:"",url:"https://"}:data.sections[si].links[li];
+        dlgLabel.value=link.label||"";
+        dlgUrl.value=link.url||"https://";
+        linkDlg.showModal();
+      }
+      linkDlg.addEventListener("close",async()=>{
+        if(linkDlg.returnValue!=="ok") return;
+        if(!editingLink) return;
+        const {si,li}=editingLink;
+        const label=dlgLabel.value.trim();
+        const url=dlgUrl.value.trim();
+        if(!label){alert("Label required."); return;}
+        if(!/^https?:\/\//i.test(url)){alert("URL must start with http(s)://"); return;}
+        if(li==null) data.sections[si].links.push({label,url});
+        else data.sections[si].links[li]={label,url};
+        await persist();
+      });
+
+      const sectionDlg=document.getElementById("sectionDlg");
+      const secTitle=document.getElementById("secTitle");
+      function openSectionDlg(si){
+        editingSection=si;
+        secTitle.value=(data.sections[si].title==null)?"":String(data.sections[si].title);
+        sectionDlg.showModal();
+      }
+      sectionDlg.addEventListener("close",async()=>{
+        if(sectionDlg.returnValue!=="ok") return;
+        if(editingSection==null) return;
+        const v=secTitle.value.trim();
+        data.sections[editingSection].title=v? v : null;
+        await persist();
+      });
+
+      document.getElementById("pickFileBtn").addEventListener("click",async()=>{
+        try{
+          [fileHandle]=await window.showOpenFilePicker({
+            multiple:false,
+            types:[{description:"JSON",accept:{"application/json":[".json"]}}],
+          });
+        }catch{return;}
+        data=ensureShape(await readJson());
+        document.getElementById("reloadBtn").disabled=false;
+        document.getElementById("addSectionBtn").disabled=false;
+        setStatus("Loaded.");
+        render();
+      });
+
+      document.getElementById("reloadBtn").addEventListener("click",async()=>{
+        if(!fileHandle) return;
+        data=ensureShape(await readJson());
+        setStatus("Reloaded.");
+        render();
+      });
+
+      document.getElementById("addSectionBtn").addEventListener("click",async()=>{
+        if(!fileHandle) return;
+        data.sections.push({id:crypto.randomUUID(),title:"New Section",links:[]});
+        await persist();
+      });
+    </script>
+  </body>
+</html>

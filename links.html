@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Links — Marcus Overacker</title>
+  </head>
+
+  <body class="min-h-screen bg-white text-black" data-page="links">
+    <main class="min-h-screen flex flex-col items-center justify-start text-center px-6 pt-24">
+      <header class="flex flex-col items-center gap-4 w-full">
+        <h1 class="text-4xl md:text-5xl font-light tracking-wide">Marcus Overacker</h1>
+
+        <p class="text-xs tracking-widest uppercase text-neutral-600">
+          Composer · Guitarist · Teacher · Artist
+        </p>
+
+        <a
+          href="/index.html"
+          data-nav="home"
+          class="nav-link inline-block px-2 py-1 rounded-sm mt-2 text-xs tracking-widest uppercase text-neutral-500 hover:text-black transition"
+        >
+          Home
+        </a>
+
+        <nav class="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
+          <a
+            href="/works.html"
+            data-nav="works"
+            class="nav-link inline-block px-2 py-1 rounded-sm text-xs tracking-widest uppercase text-neutral-600 hover:text-black transition"
+          >
+            Works
+          </a>
+          <a
+            href="/currents.html"
+            data-nav="currents"
+            class="nav-link inline-block px-2 py-1 rounded-sm text-xs tracking-widest uppercase text-neutral-600 hover:text-black transition"
+          >
+            The Currents
+          </a>
+          <a
+            href="/about.html"
+            data-nav="about"
+            class="nav-link inline-block px-2 py-1 rounded-sm text-xs tracking-widest uppercase text-neutral-600 hover:text-black transition"
+          >
+            About
+          </a>
+          <a
+            href="/contact.html"
+            data-nav="contact"
+            class="nav-link inline-block px-2 py-1 rounded-sm text-xs tracking-widest uppercase text-neutral-600 hover:text-black transition"
+          >
+            Contact
+          </a>
+        </nav>
+      </header>
+
+      <section class="mt-10 w-full">
+        <div class="page-titlebar">
+          <div class="page-titlebar-title">LINKS</div>
+        </div>
+
+        <!-- LINKS:START -->
+<div class="links-wrap w-full max-w-[920px] mx-auto mt-10 space-y-10 text-left">
+  <section class="links-section" id="general">
+  
+  <ul class="links-list">
+    <li class="links-item">
+  <a class="links-a" href="https://instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a>
+</li>
+<li class="links-item">
+  <a class="links-a" href="https://youtube.com/" target="_blank" rel="noopener noreferrer">YouTube</a>
+</li>
+<li class="links-item">
+  <a class="links-a" href="https://bandcamp.com/" target="_blank" rel="noopener noreferrer">Bandcamp</a>
+</li>
+  </ul>
+</section>
+
+<section class="links-section" id="230a57e7-140e-405d-b111-1713d8ccf667">
+  <h3 class="links-section-title">New Section</h3>
+  <ul class="links-list">
+    <li class="links-item">
+  <a class="links-a" href="https://https://www.marcusoveracker.com/emerge" target="_blank" rel="noopener noreferrer">EMERGE</a>
+</li>
+  </ul>
+</section>
+</div>
+<!-- LINKS:END -->
+      </section>
+    </main>
+
+    <script>
+      const COLORS = {
+        works:    { bg: "bg-black",       text: "text-white" },
+        currents: { bg: "bg-neutral-50",  text: "text-black" },
+        about:    { bg: "bg-yellow-700",  text: "text-black" },
+        contact:  { bg: "bg-red-800",     text: "text-white" },
+        home:     { bg: "bg-neutral-600", text: "text-white" },
+      };
+
+      const REMOVE = [
+        "bg-black","bg-neutral-50","bg-yellow-700","bg-red-800","bg-neutral-600",
+        "text-white","text-black","ring-1","ring-black"
+      ];
+
+      function clearFlash(el) { el.classList.remove(...REMOVE); }
+      function applyFlash(el, key) {
+        const c = COLORS[key];
+        if (!c) return;
+        clearFlash(el);
+        el.classList.add(c.bg, c.text);
+        if (key === "currents") el.classList.add("ring-1","ring-black");
+      }
+
+      (() => {
+        const page = document.body.getAttribute("data-page");
+        const a = document.querySelector(`.nav-link[data-nav="${page}"]`);
+        if (!a) return;
+        applyFlash(a, page);
+      })();
+
+      document.querySelectorAll(".nav-link[data-nav]").forEach((a) => {
+        const key = a.getAttribute("data-nav");
+        a.addEventListener("mouseenter", () => applyFlash(a, key));
+        a.addEventListener("mouseleave", () => {
+          const page = document.body.getAttribute("data-page");
+          if (key === page) return;
+          clearFlash(a);
+          if (key === "currents") a.classList.add("ring-1","ring-black");
+        });
+      });
+    </script>
+  </body>
+</html>
