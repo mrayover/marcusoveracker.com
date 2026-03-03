@@ -39,13 +39,33 @@ html { overflow-y: scroll; }
 }
 
 .currents-links a {
+  color: #0b3d2e;               /* forest green */
   text-decoration: underline;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.18s ease, color 0.18s ease;
 }
+
+.currents-links a:hover {
+  background-color: #0b3d2e;    /* green pill */
+  color: #ffffff;               /* white text */
+  text-decoration: none;
+}
+/* Currents: image sizing (authoritative) */
 .currents-entry img {
   display: block;
-  margin: 1.5rem auto;
-  max-width: 25%;
   height: auto;
+  margin: 1.5rem auto;
+  max-width: 100%;
+}
+
+/* Prefer the explicit class the generator emits */
+.currents-image {
+  display: block;
+  height: auto;
+  width: clamp(320px, 72%, 900px);
+  max-width: 100%;
+  margin: 1.5rem auto;
 }
 .currents-separator {
   border: 0;
