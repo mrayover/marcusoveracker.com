@@ -6,7 +6,7 @@
     { "source": "/about.html", "destination": "/about", "permanent": true },
     { "source": "/contact.html", "destination": "/contact", "permanent": true },
     { "source": "/emerge.html", "destination": "/emerge", "permanent": true },
-    { "source": "/links", "destination": "/links.html", "permanent": true  }
+    { "source": "/links.html", "destination": "/links.html", "permanent": true  }
   ],
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
