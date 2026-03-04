@@ -5,7 +5,8 @@
     { "source": "/currents.html", "destination": "/currents", "permanent": true },
     { "source": "/about.html", "destination": "/about", "permanent": true },
     { "source": "/contact.html", "destination": "/contact", "permanent": true },
-    { "source": "/emerge.html", "destination": "/emerge", "permanent": true }
+    { "source": "/emerge.html", "destination": "/emerge", "permanent": true },
+    { "source": "/links", "destination": "/links.html", "permanent": true  }
   ],
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
@@ -13,6 +14,7 @@
     { "source": "/currents", "destination": "/currents.html" },
     { "source": "/about", "destination": "/about.html" },
     { "source": "/contact", "destination": "/contact.html" },
-    { "source": "/emerge", "destination": "/emerge.html" }
+    { "source": "/emerge", "destination": "/emerge.html" },
+    { "source": "/links", "destination": "/links.html"  }
   ]
 }
