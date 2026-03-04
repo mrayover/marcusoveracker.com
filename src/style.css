@@ -279,13 +279,22 @@ html, body {
 }
 
 /* Center the subtle Links pre-button and set visited to deep forest green */
-.links-prebutton-wrapper { text-align: center; }
-.links-prebutton:visited { color: #0b3d2e; }
+.links-prebutton {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
 
-/* Currents images: occupy more of the frame width */
-.currents-image {
-  display: block;
-  height: auto;
-  width: min(100%, 920px);
-  margin: 1.5rem auto;
+  font-size: 0.75rem;         /* matches nav feel */
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  text-decoration: none;
+
+  color: #525252;             /* neutral-600-ish */
+  transition: background-color 0.18s ease, color 0.18s ease;
 }
+
+.links-prebutton:hover {
+  background-color: #0b3d2e;  /* forest green */
+  color: #ffffff;             /* white text */
+}
+

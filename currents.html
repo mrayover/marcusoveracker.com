@@ -61,7 +61,9 @@
 
 <section class="mt-10 w-full">
 <div class="links-prebutton-wrapper">
-  <a class="links-prebutton" href="/links">Links</a>
+<a href="/links" class="links-prebutton">
+  Links
+</a>
 </div>
   <div class="currents-frame">
     <div class="currents-frame-inner">
@@ -159,10 +161,12 @@
     about:    { bg: "bg-yellow-700",  text: "text-black" },
     contact:  { bg: "bg-red-800",     text: "text-white" },
     home:     { bg: "bg-neutral-600", text: "text-white" },
-  };
+    links:    { bg: "bg-[#0b3d2e]",   text: "text-white" } // forest green pill
+};
 
   const REMOVE = [
     "bg-black","bg-neutral-50","bg-yellow-700","bg-red-800","bg-neutral-600",
+    "bg-[#0b3d2e]",
     "text-white","text-black",
     "ring-1","ring-black"
   ];
@@ -209,12 +213,15 @@
       if (key === page) applyFlash(a, key);
     });
 
-    a.addEventListener("click", (e) => {
-      applyFlash(a, key);
-      e.preventDefault();
-      const href = a.getAttribute("href");
-      window.setTimeout(() => { window.location.href = href; }, 80);
-    });
+a.addEventListener("click", (e) => {
+  // Let Links behave like a normal link (no flash persistence edge cases)
+  if (key === "links") return;
+
+  applyFlash(a, key);
+  e.preventDefault();
+  const href = a.getAttribute("href");
+  window.setTimeout(() => { window.location.href = href; }, 80);
+});
   });
 </script>
 
