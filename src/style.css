@@ -38,19 +38,8 @@ html { overflow-y: scroll; }
   }
 }
 
-.currents-links a {
-  color: #0b3d2e;               /* forest green */
-  text-decoration: underline;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.18s ease, color 0.18s ease;
-}
 
-.currents-links a:hover {
-  background-color: #0b3d2e;    /* green pill */
-  color: #ffffff;               /* white text */
-  text-decoration: none;
-}
+s
 /* Currents: image sizing (authoritative) */
 .currents-entry img {
   display: block;
@@ -89,7 +78,20 @@ html { overflow-y: scroll; }
 }
 
 .currents-links a {
+  display: inline-block;
+  color: #0b3d2e;
   text-decoration: underline;
+  text-underline-offset: 3px;
+
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.currents-links a:hover {
+  background-color: #0b3d2e;
+  color: #ffffff;
+  text-decoration: none;
 }
 
 .currents-frame-title{
