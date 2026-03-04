@@ -82,8 +82,10 @@ html { overflow-y: scroll; }
   text-decoration: underline;
   text-underline-offset: 3px;
 
-  padding: 0.25rem 0.65rem;
-  border-radius: 9999px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.125rem;
+  border: 1px solid transparent;  /* prevents hover jump */
+
   transition: background-color 0.18s ease, color 0.18s ease;
 }
 
@@ -91,6 +93,7 @@ html { overflow-y: scroll; }
   background-color: #0b3d2e;
   color: #ffffff;
   text-decoration: none;
+  border: 1px solid #0b3d2e;
 }
 
 .currents-frame-title{
@@ -279,22 +282,5 @@ html, body {
 }
 
 /* Center the subtle Links pre-button and set visited to deep forest green */
-.links-prebutton {
-  display: inline-block;
-  padding: 0.25rem 0.65rem;
-  border-radius: 9999px;
 
-  font-size: 0.75rem;         /* matches nav feel */
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  text-decoration: none;
-
-  color: #525252;             /* neutral-600-ish */
-  transition: background-color 0.18s ease, color 0.18s ease;
-}
-
-.links-prebutton:hover {
-  background-color: #0b3d2e;  /* forest green */
-  color: #ffffff;             /* white text */
-}
 
